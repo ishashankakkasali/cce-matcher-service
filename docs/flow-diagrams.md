@@ -279,7 +279,7 @@ written off.
 > There is no `EARLY` or `ON_TIME` status. The 1.x schema had a separate `completion_status` column with
 > `EARLY`/`ON_TIME`/`LATE`; `V2` drops it, because the pair above already expresses it —
 > `COMPLETED`+`MET` is on time, `COMPLETED`+`OVERDUE`/`MISSED` is late. See
-> [`SlaStatus`](../../cce-common-util/docs/data-dictionary.md#slastatus) for the full value reference.
+> [`SlaStatus`](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/data-dictionary.md#slastatus) for the full value reference.
 
 ## 5. Deviation Detection & Recording
 

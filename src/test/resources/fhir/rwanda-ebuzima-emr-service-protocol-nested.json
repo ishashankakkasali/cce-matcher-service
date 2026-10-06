@@ -3,7 +3,7 @@
   "url": "http://openphc.org/PlanDefinition/emr-service-protocol",
   "date": "2026-06-22",
   "name": "EmrServiceProtocol",
-  "title": "EMR Service Diabetes Screening & Management Protocol",
+  "title": "EMR Service Screening & Management Protocol",
   "action": [
     {
       "id": "visit-encounter",
@@ -34,7 +34,7 @@
       "timingTiming": {
         "repeat": { "count": 1, "period": 1, "frequency": 1, "periodUnit": "d" }
       },
-      "requiredBehavior": "must"
+      "requiredBehavior": "could"
     },
     {
       "id": "vitals-recording",
@@ -157,7 +157,7 @@
               "offsetDuration": { "code": "d", "unit": "d", "value": 0, "system": "http://unitsofmeasure.org" }
             }
           ],
-          "requiredBehavior": "must"
+          "requiredBehavior": "could"
         },
         {
           "id": "history-assessment",
@@ -226,7 +226,7 @@
               "offsetDuration": { "code": "d", "unit": "d", "value": 0, "system": "http://unitsofmeasure.org" }
             }
           ],
-          "requiredBehavior": "must",
+          "requiredBehavior": "could",
           "action": [
             {
               "id": "lab-results",
@@ -267,7 +267,7 @@
                   "offsetDuration": { "code": "d", "unit": "d", "value": 3, "system": "http://unitsofmeasure.org" }
                 }
               ],
-              "requiredBehavior": "must"
+              "requiredBehavior": "could"
             }
           ]
         },
@@ -341,7 +341,7 @@
               "offsetDuration": { "code": "d", "unit": "d", "value": 0, "system": "http://unitsofmeasure.org" }
             }
           ],
-          "requiredBehavior": "must"
+          "requiredBehavior": "could"
         },
         {
           "id": "referral",
