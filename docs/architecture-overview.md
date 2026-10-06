@@ -5,7 +5,7 @@
 The **CCE Matcher Service** is a core microservice within the **CCE** platform. It tracks patient adherence to clinical protocols defined as FHIR R4 `PlanDefinition` resources — consuming clinical events, matching them against protocol steps, detecting deviations, evaluating intelligence actions, and publishing intelligence trigger events to downstream services.
 
 This section places Matcher among its neighbours. *Why* the platform is split across these services, and the topology as a whole, is covered once in
-[`cce-common-util` → architecture-overview.md](../../cce-common-util/docs/architecture-overview.md).
+[`cce-common-util` → architecture-overview.md](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/architecture-overview.md).
 
 ```mermaid
 graph TB
@@ -65,7 +65,7 @@ route to it.
 
 Time-based `sla_status` transitions are owned by the **CCE Step SLA Service**. Matcher's role is to
 *schedule* them: when it creates a step it writes one
-[`step_sla_state_transition`](../../cce-common-util/docs/data-dictionary.md#7-step_sla_state_transition)
+[`step_sla_state_transition`](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/data-dictionary.md#7-step_sla_state_transition)
 row per threshold, in the same transaction, so a step never exists without its schedule.
 
 Everything after that — deciding which rows are due, applying the status change, recording the
@@ -76,7 +76,7 @@ two: they meet on one table in the shared database, with one writer per column.
 happened, and when — and the Step SLA Service owns every judgement of timeliness made from it. The two
 never write the same column. Concretely, Matcher writes `step_status` and `completed_at` and never
 `sla_status`; it inserts the transition rows — the two deadlines at creation, and a
-`MET_CONDITION_REACHED` at a completion that beat the due date — and never touches one again. Step SLA
+`MET_CONDITION_REACHED` at a completion on or before the due date — and never touches one again. Step SLA
 reads that `completed_at` and settles the SLA from it when each row comes round.
 
 `ORDER_VIOLATION` deviations stay in this service, because they are detected from the event itself at
@@ -85,9 +85,9 @@ completion rather than from a deadline passing.
 The full contract — the two reasons a row is claimable, what the applier does when an event arrived
 before its deadline, retry and backoff — is documented once, on the side that implements it:
 
-- `cce-common-util` → [Architecture Overview §5](../../cce-common-util/docs/architecture-overview.md#5-sla-transition-contract) — the contract
-- `cce-step-sla-service` → [Architecture §3–4](../../cce-step-sla-service/docs/architecture-overview.md#3-the-claim-protocol) — the implementation
-- Column-by-column ownership: `cce-common-util` → [Data Dictionary §3](../../cce-common-util/docs/data-dictionary.md#3-ownership)
+- `cce-common-util` → [Architecture Overview §5](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/architecture-overview.md#5-sla-transition-contract) — the contract
+- `cce-step-sla-service` → [Architecture §3–4](https://github.com/openphc/cce-step-sla-service/blob/release-2.0.0/docs/architecture-overview.md#3-the-fetch-and-apply-cycle) — the implementation
+- Column-by-column ownership: `cce-common-util` → [Data Dictionary §3](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/data-dictionary.md#3-ownership)
 
 ### 1.2 Intelligence Service Contract
 
@@ -185,9 +185,9 @@ the Kafka wire contracts (`CloudEventMessage`, `IntelligenceTriggerEvent`), the 
 `SlaThresholdReader`).
 
 That inventory is not restated here — see
-[`cce-common-util` → library-reference.md](../../cce-common-util/docs/library-reference.md) for the
+[`cce-common-util` → library-reference.md](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/library-reference.md) for the
 package-by-package reference, and
-[data-dictionary.md](../../cce-common-util/docs/data-dictionary.md) for the nine shared tables.
+[data-dictionary.md](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/data-dictionary.md) for the nine shared tables.
 
 `SlaThresholdReader` is worth singling out: Matcher *writes* a step's SLA schedule and Step SLA *reads*
 it, so how those rows are interpreted is shared code rather than duplicated on both sides.
@@ -288,19 +288,19 @@ References, periods, numbers and anything else carry no code and are skipped. A 
 falls back to its `display`.
 
 The Protocol Service accepts any single top-level field name as a `codeFilter.path`
-([`TriggerPath`](../../cce-common-util/src/main/java/org/openphc/cce/common/fhir/TriggerPath.java)) and
+([`TriggerPath`](https://github.com/openphc/cce-common-util/blob/release-2.0.0/src/main/java/org/openphc/cce/common/fhir/TriggerPath.java)) and
 rejects dotted or indexed expressions (`participant.type`, `type[0]`), which this extractor cannot follow
 and which would be indexed and never matched — disabling the action, since Tier 1 requires *every*
 codeFilter to match. The trade-off of not having a list is that a misspelt field name loads cleanly and
 simply never matches. The `resourceType` row above is read by
-[`ResourceTypeDetector`](../../cce-common-util/src/main/java/org/openphc/cce/common/fhir/ResourceTypeDetector.java),
+[`ResourceTypeDetector`](https://github.com/openphc/cce-common-util/blob/release-2.0.0/src/main/java/org/openphc/cce/common/fhir/ResourceTypeDetector.java),
 in cce-common-util, because the Collector Service needs the same reading of the same payload.
 
 ### 4.2 Clinical Event Time Extraction
 
 When an inbound event **completes** a step, the completion is attributed to the **clinical occurrence time** — when the act actually happened — rather than the time the event reached the service. This keeps a completed step's `completed_at`, its `sla_status`, and the calculated due/missed dates of any **dependent steps** accurate even when events arrive late (offline sync, batch upload, retries, DLQ replay).
 
-`ClinicalEventTimeExtractor` derives this time from the FHIR payload using a resource-type → clinical-time-field table, handling FHIR's polymorphic `[x]` choice types by probing concrete field names in priority order. It lives in [cce-common-util](../../cce-common-util/docs/library-reference.md#clinicaleventtimeextractor) because the Collector Service stamps `inbound_event_log.event_time` from the same reading: while the two services held separate copies, an `Encounter` carrying both bounds was recorded there at `period.end` and judged here at `period.start`, so the audit trail and the SLA clock disagreed about when the visit happened.
+`ClinicalEventTimeExtractor` derives this time from the FHIR payload using a resource-type → clinical-time-field table, handling FHIR's polymorphic `[x]` choice types by probing concrete field names in priority order. It lives in [cce-common-util](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/library-reference.md#clinicaleventtimeextractor) because the Collector Service stamps `inbound_event_log.event_time` from the same reading: while the two services held separate copies, an `Encounter` carrying both bounds was recorded there at `period.end` and judged here at `period.start`, so the audit trail and the SLA clock disagreed about when the visit happened.
 
 | Resource type | Clinical-time fields (first match wins) |
 |---|---|
@@ -547,10 +547,10 @@ A step carries two statuses that advance **independently**: `step_status` is dri
 transition touches the other.
 
 Both state machines, and why the two columns are separate, are in `cce-common-util` →
-[Architecture Overview §4](../../cce-common-util/docs/architecture-overview.md#4-step-status-and-sla-status).
+[Architecture Overview §4](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/architecture-overview.md#4-step-status-and-sla-status).
 What follows is what *this* service does within them.
 
-**Scheduling the SLA verdict on completion:** this service writes no `sla_status`, ever. What it does at completion is schedule the one verdict that has become answerable — when the event beat `dueDate`, `StepSlaScheduleService.scheduleMetIfOnTime` writes a `MET_CONDITION_REACHED` row with `process_by` set to that `completed_at`, so the Step SLA Service records `MET` within a cycle instead of at a deadline weeks away. A completion that did not beat the due date schedules nothing: the step's own deadline rows are already there to catch it, and it keeps whatever they reached — `OVERDUE` past the due date, `MISSED` past the missed date — so one row states both that the work was done and that it was late. Timing is judged against the **clinical occurrence time** of the completing event (see §4.2), not the ingestion time, so an act that happened on time but reported late is still `MET`.
+**Scheduling the SLA verdict on completion:** this service writes no `sla_status`, ever. What it does at completion is schedule the one verdict that has become answerable — when the event landed on or before `dueDate` (inclusive: at the instant counts), `StepSlaScheduleService.scheduleMetIfOnTime` writes a `MET_CONDITION_REACHED` row with `process_by` set to that `completed_at`, so the Step SLA Service records `MET` within a cycle instead of at a deadline weeks away. A completion after the due date schedules nothing: the step's own deadline rows are already there to catch it, and it keeps whatever they reached — `OVERDUE` past the due date, `MISSED` past the missed date — so one row states both that the work was done and that it was late. Timing is judged against the **clinical occurrence time** of the completing event (see §4.2), not the ingestion time, so an act that happened on time but reported late is still `MET`.
 
 **Completability** depends on `step_status` alone. A step whose SLA is already `MISSED` is still completable by a late event; the previous model treated `MISSED` as terminal, so a late event created a second row instead of recording the arrival against the step that was actually missed.
 
@@ -747,7 +747,7 @@ Each **intelligence action** (`PlanDefinition.action.action`) contains:
 | `trigger_reason` | Why the action fired: `missed`, `order_violation`, `completion` |
 | `evaluation_context` | Runtime variables passed to the condition evaluator |
 
-All execution and evaluation context is stored in a single row — no FK constraints, no joins required. See [Data Dictionary §11](../../cce-common-util/docs/data-dictionary.md#11-intelligence_event_log).
+All execution and evaluation context is stored in a single row — no FK constraints, no joins required. See [Data Dictionary §11](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/data-dictionary.md#11-intelligence_event_log).
 
 ### 6.4 Flat Step Model (Nested Actions Flattened)
 

@@ -48,15 +48,16 @@ System-wide context lives in **cce-common-util** and is not restated here:
 
 | For | See |
 |---|---|
-| Why the services are split, and how they coordinate | `cce-common-util` → [docs/architecture-overview.md](../cce-common-util/docs/architecture-overview.md) |
-| Schema for the ten shared tables (including the two history tables), enums, JSONB shapes, table ownership | `cce-common-util` → [docs/data-dictionary.md](../cce-common-util/docs/data-dictionary.md) |
-| `relatedAction` direction, status vocabularies, triggers, timing units | `cce-common-util` → [docs/fhir-conformance.md](../cce-common-util/docs/fhir-conformance.md) |
-| The shared entities, parser, cache and evaluator this service uses | `cce-common-util` → [docs/library-reference.md](../cce-common-util/docs/library-reference.md) |
-| Loading and retiring definitions, building the trigger index | `cce-protocol-service` → [docs/](../cce-protocol-service/docs/architecture-overview.md) |
-| Applying SLA transitions once they fall due | `cce-step-sla-service` → [docs/](../cce-step-sla-service/docs/architecture-overview.md) |
+| Why the services are split, and how they coordinate | `cce-common-util` → [docs/architecture-overview.md](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/architecture-overview.md) |
+| Schema for the ten shared tables (including the two history tables), enums, JSONB shapes, table ownership | `cce-common-util` → [docs/data-dictionary.md](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/data-dictionary.md) |
+| `relatedAction` direction, status vocabularies, triggers, timing units | `cce-common-util` → [docs/fhir-conformance.md](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/fhir-conformance.md) |
+| The shared entities, parser, cache and evaluator this service uses | `cce-common-util` → [docs/library-reference.md](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/library-reference.md) |
+| Loading and retiring definitions, building the trigger index | `cce-protocol-service` → [docs/](https://github.com/openphc/cce-protocol-service/blob/release-2.0.0/docs/architecture-overview.md) |
+| Applying SLA transitions once they fall due | `cce-step-sla-service` → [docs/](https://github.com/openphc/cce-step-sla-service/blob/release-2.0.0/docs/architecture-overview.md) |
 
-Cross-repository links assume the repositories are checked out as siblings, which is also what the
-Gradle composite build assumes.
+Cross-repository links go to the `openphc` repositories on GitHub, on `release-2.0.0`, so they work
+on GitHub as well as locally. The Gradle composite build does assume the repositories are checked
+out as siblings.
 
 ## Architecture
 
@@ -89,7 +90,7 @@ Startup + every 60s: ProtocolDefinitionService.refreshProtocolCaches()
 `step_instance.sla_status` belongs entirely to the **CCE Step SLA Service**, which claims the
 `step_sla_state_transition` rows this service writes. This service records *that* a step completed and
 *when* (`completed_at`, from the clinical occurrence time) and never judges whether that was timely — it
-only schedules the verdict, adding a `MET_CONDITION_REACHED` row when the work beat the due date. A
+only schedules the verdict, adding a `MET_CONDITION_REACHED` row when the work landed on or before the due date. A
 freshly completed step's `sla_status` is null until Step SLA applies that row, a cycle later. One
 writer, one source of evidence.
 

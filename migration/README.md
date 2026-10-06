@@ -36,7 +36,7 @@ schema. See [Deployment Guide](../docs/deployment-guide.md).
 | `audit_log` | dropped; the append-only history tables carry state transitions, and actor attribution is planned to move onto the domain tables |
 
 The pair is what makes "completed, but late" representable — the old single column could not express
-it. Background: [Architecture Overview §4](../../cce-common-util/docs/architecture-overview.md#4-step-status-and-sla-status).
+it. Background: [Architecture Overview §4](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/architecture-overview.md#4-step-status-and-sla-status).
 
 The last four rows are applied by §8 and §9 of the migration, which run last: they are the final step
 of the cutover, after the tables above are in their new shape. `audit_log` is dropped by its own

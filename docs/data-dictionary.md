@@ -7,8 +7,8 @@ Ten further tables — `protocol_definition`, `protocol_instance`, `step_instanc
 `intelligence_event_log` and the two state-transition history tables — are mapped by entities in
 **cce-common-util** and documented there, once:
 
-- [Data Dictionary](../../cce-common-util/docs/data-dictionary.md) — columns, indexes, enums, JSONB shapes, and the full ER diagram
-- [Data Dictionary §3](../../cce-common-util/docs/data-dictionary.md#3-ownership) — which service creates and which writes each table
+- [Data Dictionary](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/data-dictionary.md) — columns, indexes, enums, JSONB shapes, and the full ER diagram
+- [Data Dictionary §3](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/data-dictionary.md#3-ownership) — which service creates and which writes each table
 
 This service **runs the migration** for every table except the three the Protocol Service owns, so it
 creates far more tables than it documents here. Creating a table and mapping it are separate things:
@@ -17,7 +17,7 @@ the DDL is in `V1__initial_schema.sql`, the column reference is wherever the ent
 The history tables moved out in 2.0.0. Their entities now live in cce-common-util, because the
 Step SLA Service also appends to `step_instance_history` — recording each `sla_status` transition it
 applies — so they stopped belonging to this service alone. This service still runs their DDL. See
-[Data Dictionary §12](../../cce-common-util/docs/data-dictionary.md#12-state-transition-history-tables).
+[Data Dictionary §12](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/data-dictionary.md#12-state-transition-history-tables).
 
 ---
 
@@ -49,7 +49,7 @@ been processed.
 | `cloudevents_id` | `VARCHAR` | **NOT NULL** | — | CloudEvents `id`. Used with `source` for idempotency. |
 | `source` | `VARCHAR` | **NOT NULL** | — | CloudEvents `source` (e.g., `rhie-mediator`, `smartcare-emr`). |
 | `correlation_id` | `VARCHAR` | Yes | — | Distributed tracing ID from CloudEvent `correlationid` extension. |
-| `processing_status` | `VARCHAR` | **NOT NULL** | — | Processing outcome. See [ProcessingStatus](../../cce-common-util/docs/data-dictionary.md#processingstatus). |
+| `processing_status` | `VARCHAR` | **NOT NULL** | — | Processing outcome. See [ProcessingStatus](https://github.com/openphc/cce-common-util/blob/release-2.0.0/docs/data-dictionary.md#processingstatus). |
 | `data` | `JSONB` | Yes | — | Full CloudEvent `data` body (optional, stored for debugging). |
 | `received_at` | `TIMESTAMPTZ` | **NOT NULL** | `now()` | Ingestion timestamp. |
 | `updated_at` | `TIMESTAMPTZ` | **NOT NULL** | `now()` | Last modification timestamp (e.g., when `processing_status` changes). |
@@ -60,7 +60,7 @@ been processed.
 |------|------|---------|
 | Primary Key | `matcher_event_log_pkey` | `id` |
 | Unique | `matcher_event_log_cloudevents_id_source_key` | `(cloudevents_id, source)` — Idempotency guard. |
-| Check | — | `processing_status IN ('MATCHED', 'ZERO_MATCH', 'DUPLICATE')` |
+| Check | — | `processing_status IN ('MATCHED', 'ZERO_MATCH', 'DUPLICATE')`. `DUPLICATE` is no longer written: a repeat of a logged event is only counted (`cce.events.duplicate`), since a second row would violate the unique key above. The value stays admitted for rows written before that. |
 
 ### Design Notes
 
